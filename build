@@ -1,0 +1,57 @@
+#!/bin/zsh
+
+
+PROJECT_NAME="$1"
+# PROJECT_NAME="test"
+
+if [ -z "$PROJECT_NAME" ]; then
+  echo "No project name specified"
+  exit 1
+fi
+
+PROJECT_DIR="$(readlink -f "$PROJECT_NAME")"
+
+if [ -d "$PROJECT_DIR" ]; then
+  echo "directory already exists"
+  exit 1
+fi
+
+
+#------------
+
+
+SCRIPT_DIR=$(
+  SOURCE="${(%):-%x}"
+  while [ -h "$SOURCE" ]; do
+    DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
+    SOURCE="$(readlink "$SOURCE")"
+    [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+  done
+  ( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )
+)
+
+
+TEMP_DIR="$(mktemp -d)"
+
+( cd "$SCRIPT_DIR"
+
+
+  dhall-to-yaml \
+    --output "$TEMP_DIR/package.yaml" \
+    << EOF
+
+  ./mics/makepack.dhall
+
+{ name                 = "$PROJECT_NAME"
+, cabal-version        = "$(cabal --numeric-version)"
+}
+EOF
+# , supported-extensions = $(ghc --supported-extensions | sed 's/^/"/g;s/$/"/' | jq -scjr)
+
+  cp -r ./blob/* "$TEMP_DIR"
+  ( cd "$TEMP_DIR" && hpack . )
+
+)
+
+mv "$TEMP_DIR" "$PROJECT_DIR"
+# rm -rf "$TEMP_DIR"
