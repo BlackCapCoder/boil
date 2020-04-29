@@ -138,6 +138,10 @@ module Prelude (
     , module Data.Void
     , module Data.Function
 
+    ------------------
+
+    , fi
+
   ) where
 
 import Data.Function (fix)
@@ -170,3 +174,7 @@ import GHC.Show
 
 map :: Functor f => (a -> b) -> f a -> f b
 map = fmap
+
+fi :: (Integral a, Num b) => a -> b
+fi = fromIntegral
+

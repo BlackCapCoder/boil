@@ -48,8 +48,14 @@ TEMP_DIR="$(mktemp -d)"
 EOF
 # , supported-extensions = $(ghc --supported-extensions | sed 's/^/"/g;s/$/"/' | jq -scjr)
 
-  cp -r ./blob/* "$TEMP_DIR"
-  ( cd "$TEMP_DIR" && hpack . )
+  cp -r ./blob/src "$TEMP_DIR"
+  ln -s "$SCRIPT_DIR/blob/MyPrelude" "$TEMP_DIR"
+  ( cd "$TEMP_DIR"
+    hpack .
+    echo "cradle: {cabal: {component: \"lib:$PROJECT_NAME\"}}" > hie.yaml
+    echo 'allow-newer: all' > cabal.project.local
+    hasktags --ctags -L --output=codex.tags . ~/.cabal/packages/hackage.haskell.org/
+  )
 
 )
 
