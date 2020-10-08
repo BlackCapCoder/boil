@@ -3,6 +3,4 @@
 , "containers"
 , "transformers"
 , "mtl"
-, "comonad"
-, "semigroupoids"
 ]
