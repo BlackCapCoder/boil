@@ -5,8 +5,8 @@ This is a script that creates a new haskell project. The new project:
 - Uses cabal
 - Supports hpack (package.yaml)
 - Most language extensions are enabled
-- mtl, and containers are dependencies
-- Replaces `Prelude` with a `MyPrelude` sub-project, which is mostly identical to Prelude
+- mtl, containers (and friends) are dependencies
+- Replaces `Prelude` with a `MyPrelude` sub-project, ~~which is mostly identical to Prelude~~
 
 
 Unlike stack this supports:
@@ -47,3 +47,16 @@ hpack; cabal new-build --allow-newer
 ```bash
 cabal new-repl --allow-newer
 ```
+
+
+## Feature creep
+
+Unlike most of my projects I ended up actually using this one!
+
+I try to keep my Prelude lightweight and tidy, yet things
+that are more generally useful, or that I find myself reimplementing
+often, somehow end up in my Prelude!
+
+Things that get in the way later I throw back out, or just
+not exported by default.
+
