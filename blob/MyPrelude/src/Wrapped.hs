@@ -1,7 +1,7 @@
 module Wrapped where
 
 import Base
-import Coerce (Parametrically)
+import Utils (Parametrically)
 
 import Data.Functor.Bind as B
 import Data.Functor.Extend

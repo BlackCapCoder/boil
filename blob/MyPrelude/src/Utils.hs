@@ -11,6 +11,11 @@ infixr 6 <>
 class    (a, b) => a <> b
 instance (a, b) => a <> b
 
+
+type Parametrically c f
+   = ∀ a b. c a b => c (f a) (f b) :: Constraint
+
+
 -- Fold with monoid unit
 mfoldl  f = foldl  f mempty
 mfoldl' f = foldl' f mempty

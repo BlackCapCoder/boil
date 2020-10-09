@@ -1,6 +1,8 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE PolyKinds #-}
 module Iso where
 
+import Base
 import Control.Applicative
 import Control.Category
 import Data.Biapplicative
@@ -23,6 +25,7 @@ import Data.Semiring
 import qualified Control.Arrow as Arr
 
 
+type Iso :: (k -> k -> Type) -> k -> k -> Type
 data Iso k a b
    = Iso { pro :: k a b, con :: k b a }
 

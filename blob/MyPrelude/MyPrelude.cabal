@@ -5,7 +5,6 @@ version:             0.1.0.0
 library
   exposed-modules:     Prelude
                      , BTree
-                     , Coerce
                      , Defn
                      , Iso
                      , Recursion
@@ -13,6 +12,9 @@ library
                      , TypeUtils
                      , Utils
                      , Wrapped
+                     , Logic.Not
+                     , Logic.Neq
+                     , Logic.Set
   other-modules:       Elem
                      , Base
 
