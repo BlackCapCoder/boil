@@ -1,59 +1,99 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE DeriveFunctor #-}
+{-# LANGUAGE DerivingVia #-}
+{-# LANGUAGE EmptyCase #-}
 module BTree where
 
 import Prelude
+import Recursion
+import Wrapped
+
 import Data.Ratio
 import Data.Traversable
+import Data.Functor.Classes
+import Data.Monoid
+import Data.Zip
+import Data.Bifunctor
+
+import Data.Functor.Bind hiding (join)
+import Data.Functor.Extend
 
 
-data BTree a
-   = Bin a (BTree a) (BTree a)
+data BTreeF a f
+   = BinF a f f
    deriving
      ( Show, Eq, Ord, Functor
      )
 
+newtype BTree a
+      = BTree (Nu (BTreeF a))
+
+pattern Bin a l r
+      = Rec (BinF a l r)
+
+type instance Base (BTree a)
+      = BTreeF a
+
+
+deriving newtype
+  instance Recursive (BTree a)
+
+deriving newtype
+  instance Corecursive (BTree a)
+
+deriving via Ap BTree a
+  instance Semigroup a => Semigroup (BTree a)
+
+deriving via Ap BTree a
+  instance Monoid a => Monoid (BTree a)
+
+deriving via Ap BTree a
+  instance Semiring a => Semiring (BTree a)
+
+deriving via Ap BTree
+  instance Functor BTree
+
+deriving via WrappedPoint BTree
+  instance Applicative BTree
+
+deriving via WrappedPoint BTree
+  instance Comonad BTree
+
+deriving via WrappedPoint BTree
+  instance Repeat BTree
+
+deriving via WrappedApplicative BTree
+  instance Semialign BTree
+
+deriving via WrappedApplicative BTree
+  instance Zip BTree
+
+instance Bifunctor BTreeF where
+  bimap f g (BinF a l r)
+    = BinF (f a) (g l) (g r)
+
 instance Pointed BTree where
-  point a =
-    Bin a (pure a) (pure a)
+  point a = Bin a (point a) (point a)
 
 instance Copointed BTree where
-  copoint (Bin a _ _) =
-    a
+  copoint (Bin a _ _) = a
 
-instance Applicative BTree where
-  pure =
-    point
 
-  Bin f fl fr <*> Bin a al ar =
-    Bin (f a) (fl <*> al) (fr <*> ar)
+instance Apply BTree where
+  Bin f fl fr <.> Bin a al ar =
+    Bin (f a) (fl <.> al) (fr <.> ar)
 
-instance Comonad BTree where
-  extract =
-    copoint
-
-  duplicate b@(Bin _ l r) =
-    Bin b (duplicate l) (duplicate r)
+instance Extend BTree where
+  duplicated =
+    ana $ liftA2 first const project
 
 instance Foldable BTree where
   foldMap =
     foldMapDefault
 
 instance Traversable BTree where
-  traverse f (Bin a l r) =
-    liftA3 Bin (f a) (traverse f l) (traverse f l)
-
-instance Semigroup a => Semigroup (BTree a) where
-  (<>) = liftA2 (<>)
-
-instance Monoid a => Monoid (BTree a) where
-  mempty = pure mempty
-
-instance Semiring a => Semiring (BTree a) where
-  zero  = pure zero
-  one   = pure one
-  plus  = liftA2 plus
-  times = liftA2 times
+  traverse f = transverse
+    \case BinF a l r -> liftA3 BinF (f a) l r
 
 -----------
 
@@ -84,7 +124,7 @@ interval' f low high =
 
 -- Exponential ascent
 expFrom =
-  expFrom' undefined
+  expFrom' \case {}
 
 expFrom' f =
   \case
@@ -98,7 +138,7 @@ expFrom' f =
               do go x
 
 -- Search a binary tree using a predicate
-bsearch :: Ord a => (a -> Ordering) -> BTree a -> a
+bsearch :: (a -> Ordering) -> BTree a -> a
 bsearch p
   = \case
   Bin x l r
@@ -116,6 +156,7 @@ farey lim x = go lim $ fareyGrow (floor x % 1) (ceiling x % 1)
       | toRational f <  x = go (n-1) r
       | let               = go (n-1) l
 
+fareyGrow :: (Integral a, Semiring a) => Ratio a -> Ratio a -> BTree (Ratio a)
 fareyGrow =
   grow \bot top
     -> (numerator bot   + numerator top)
