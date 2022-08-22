@@ -8,17 +8,22 @@ library
                      , Defn
                      , Iso
                      , Recursion
-                     , Stack
                      , TypeUtils
                      , Utils
                      , Wrapped
                      , Logic.Not
                      , Logic.Neq
                      , Logic.Set
-  other-modules:       Elem
-                     , Base
+                     , Unit
+                     , Data.Foldable.Foldr
+                     , Data.Foldable.Unfoldable
+                     , Data.Stream
+                     , Data.Stream.Type
+                     , Data.Stream.Internal
+                     , Data.Stream.Instances
+  other-modules:       Base
 
-  build-depends:       base-noprelude >=4.12
+  build-depends:       base-noprelude >=4.13
                      , semirings
                      , comonad
                      , pointed
@@ -27,8 +32,10 @@ library
                      , these
                      , semigroupoids
                      , bifunctors
+                     , profunctors
                      , recursion-schemes
                      , data-fix
+                     , free
   hs-source-dirs:      src
   default-language:    Haskell2010
   default-extensions:

@@ -53,7 +53,7 @@ EOF
   ( cd "$TEMP_DIR"
     hpack .
     echo "cradle: {cabal: {component: \"lib:$PROJECT_NAME\"}}" > hie.yaml
-    echo 'allow-newer: all' > cabal.project.local
+    echo "allow-newer: all\npackages: */*.cabal" > cabal.project.local
     hasktags --ctags -L --output=codex.tags . ~/.cabal/packages/hackage.haskell.org/
   )
 

@@ -15,6 +15,11 @@ instance (a, b) => a <> b
 type Parametrically c f
    = ∀ a b. c a b => c (f a) (f b) :: Constraint
 
+{-# INLINE (<#>) #-}
+infixl 4 <#>
+(<#>) :: (Parametrically Coercible f, Coercible a b) => (a -> b) -> f a -> f b
+(<#>) _ab = coerce
+
 
 -- Fold with monoid unit
 mfoldl  f = foldl  f mempty

@@ -3,4 +3,8 @@
 , "containers"
 , "transformers"
 , "mtl"
+, "comonad"
+, "profunctors"
+, "semigroupoids"
+, "bifunctors"
 ]

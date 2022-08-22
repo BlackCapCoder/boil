@@ -1,6 +1,6 @@
 [ "AllowAmbiguousTypes"
 , "ApplicativeDo"
-, "Arrows"
+-- , "Arrows"
 , "BangPatterns"
 , "BinaryLiterals"
 , "BlockArguments"

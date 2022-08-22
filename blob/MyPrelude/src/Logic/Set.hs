@@ -1,5 +1,6 @@
 {-# LANGUAGE GADTs #-}
 {-# LANGUAGE DataKinds #-}
+{-# LANGUAGE PolyKinds #-}
 module Logic.Set where
 
 import Base
@@ -19,6 +20,7 @@ type SET
 type SetEq k
    = Iso (Subset k)
 
+type    Subset :: (x -> x -> Type) -> (a -> x) -> (a -> x) -> Type
 newtype Subset k f g
       = Subset { unsub :: ∀ a. (a ∈ f) `k` (a ∈ g) }
 

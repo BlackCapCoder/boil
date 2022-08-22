@@ -3,11 +3,13 @@
 module Recursion
   ( module Recursion
   , module Data.Functor.Foldable
+  , module Data.Fix
   )
   where
 
 import Base
 import Data.Functor.Foldable
+import Data.Fix (Fix (..), Nu (..), Mu (..))
 
 
 class    (Recursive f, Corecursive f) => Birecursive f

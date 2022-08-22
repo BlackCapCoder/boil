@@ -25,9 +25,17 @@ import Data.Semiring
 import qualified Control.Arrow as Arr
 
 
+
 type Iso :: (k -> k -> Type) -> k -> k -> Type
 data Iso k a b
    = Iso { pro :: k a b, con :: k b a }
+
+type (<->) =
+  Iso (->); infixr 0 <->
+
+
+swapIso (Iso a b) =
+  Iso b a
 
 
 instance Category k => Category (Iso k)
@@ -43,11 +51,13 @@ instance Semigroupoid k => Semigroupoid (Iso k)
 
 instance Groupoid k => Groupoid (Iso k)
   where
-    inv (Iso l r) = Iso r l
+    inv =
+      swapIso
 
 instance BifunctorFunctor Iso
   where
-    bifmap f (Iso a b) = Iso (f a) (f b)
+    bifmap f (Iso a b) =
+      Iso (f a) (f b)
 
 instance (Semigroup (k a b), Semigroup (k b a)) => Semigroup (Iso k a b)
   where
@@ -83,6 +93,10 @@ instance (Arr.Arrow k, Groupoid k) => Arr.Arrow (Iso k)
       = Iso g (inv g)
 
 instance Bifunctor k => Bifunctor (Iso k) where
+  first ab (Iso l r)
+    = Iso (first ab l) (second ab r)
+  second f (Iso l r)
+    = Iso (second f l) (first f r)
   bimap ab cd (Iso ac ca)
     = Iso (bimap ab cd ac) (bimap cd ab ca)
 
@@ -120,12 +134,15 @@ instance Biapply k => Biapply (Iso k) where
   Iso f g <<.>> Iso h k
     = Iso (f <<.>> h) (g <<.>> k)
 
-instance Bifunctor (Iso k) => Functor (Iso k a) where
-  fmap ab = second ab
+instance Bifunctor k => Functor (Iso k a) where
+  fmap = second
 
 instance (Pointed (k a), Groupoid k) => Pointed (Iso k a) where
   point a | p <- point a = Iso p (inv p)
 
 instance (Copointed (k a)) => Copointed (Iso k a) where
   copoint (Iso a b) = copoint a
+
+-----
+
 

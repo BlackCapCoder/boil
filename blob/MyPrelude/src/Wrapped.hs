@@ -1,12 +1,45 @@
-module Wrapped where
+{-# LANGUAGE DerivingVia #-}
+module Wrapped
+  ( WrappedPoint       (..)
+  , WrappedUnit        (..)
+  , WrappedApplicative (..)
+  , WrappedMonoid      (..)
+  , WrappedCategory    (..)
+  , WrappedApply       (..)
+  )
+  where
 
 import Base
+import Unit
 import Utils (Parametrically)
 
 import Data.Functor.Bind as B
 import Data.Functor.Extend
 import Data.These (These (..))
+import Data.Semigroup (WrappedMonoid (..))
+import Data.Semigroupoid -- (WrappedCategory (..))
 
+
+newtype WrappedUnit u = WrappedUnit u
+  deriving newtype
+    ( Unit, Semigroup
+    )
+
+newtype WrappedApply f a
+      = WrappedApply (f a)
+  deriving newtype
+    ( Functor, Apply, Pointed
+    )
+  deriving
+    ( Applicative, Semialign, Zip
+    )
+  via WrappedPoint f
+
+instance (Unit u, Semigroup u) => Monoid (WrappedUnit u) where
+  mempty = unit
+
+
+-------
 
 newtype WrappedPoint f a = WrappedPoint (f a)
   deriving newtype
@@ -14,7 +47,6 @@ newtype WrappedPoint f a = WrappedPoint (f a)
     , Functor, Apply, Semigroup
     , Semialign, Zip
     )
-
 
 instance (Pointed f, Apply f) => Applicative (WrappedPoint f) where
   pure   = point
@@ -38,7 +70,7 @@ instance
     duplicate = duplicated
     extend    = extended
 
--- This is not always correct.
+-- This is conceptually only correct for infinite structures
 instance (Pointed f, Zip f) => Repeat (WrappedPoint f) where
   repeat = point
 
@@ -70,4 +102,10 @@ instance
 instance Applicative f => Semialign (WrappedApplicative f) where align   = liftA2 These
 instance Applicative f => Zip       (WrappedApplicative f) where zipWith = liftA2
 instance Applicative f => Repeat    (WrappedApplicative f) where repeat  = pure
+
+------
+
+instance (Pointed f, Unit a) => Unit (WrappedPoint    f a  ) where unit = point unit
+instance Monoid m            => Unit (WrappedMonoid   m    ) where unit = mempty
+instance Category k          => Unit (WrappedCategory k a a) where unit = id
 

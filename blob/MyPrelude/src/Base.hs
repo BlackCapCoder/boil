@@ -64,25 +64,28 @@ module Base
     Functor(fmap, (<$)),
 
     -- ** Folds and traversals
-    Foldable(-- elem,   -- :: (Foldable t, Eq a) => a -> t a -> Bool
-             -- fold,   -- :: Monoid m => t m -> m
-             foldMap,   -- :: Monoid m => (a -> m) -> t a -> m
-             foldr,     -- :: (a -> b -> b) -> b -> t a -> b
-             foldr', -- :: (a -> b -> b) -> b -> t a -> b
-             foldl,     -- :: (b -> a -> b) -> b -> t a -> b
-             foldl', -- :: (b -> a -> b) -> b -> t a -> b
-             foldr1,    -- :: (a -> a -> a) -> t a -> a
-             foldl1,    -- :: (a -> a -> a) -> t a -> a
-             maximum,   -- :: (Foldable t, Ord a) => t a -> a
-             minimum,   -- :: (Foldable t, Ord a) => t a -> a
-             -- product,   -- :: (Foldable t, Num a) => t a -> a
-             -- sum,       -- :: Num a => t a -> a
-             toList), -- :: Foldable t => t a -> [a]
+    Foldable
+      (-- elem,   -- :: (Foldable t, Eq a) => a -> t a -> Bool
+      fold,   -- :: Monoid m => t m -> m
+      foldMap,   -- :: Monoid m => (a -> m) -> t a -> m
+      foldr,     -- :: (a -> b -> b) -> b -> t a -> b
+      foldr', -- :: (a -> b -> b) -> b -> t a -> b
+      foldl,     -- :: (b -> a -> b) -> b -> t a -> b
+      foldl', -- :: (b -> a -> b) -> b -> t a -> b
+      foldr1,    -- :: (a -> a -> a) -> t a -> a
+      foldl1,    -- :: (a -> a -> a) -> t a -> a
+      maximum,   -- :: (Foldable t, Ord a) => t a -> a
+      minimum,   -- :: (Foldable t, Ord a) => t a -> a
+      -- product,   -- :: (Foldable t, Num a) => t a -> a
+      -- sum,       -- :: Num a => t a -> a
+      toList -- :: Foldable t => t a -> [a]
+      ),
 
     S.sum, S.product, sum', product',
     foldMapP, foldMapT,
+    asum,
 
-    Traversable(traverse, sequenceA, mapM, sequence),
+    Traversable (traverse, sequenceA, mapM, sequence),
 
     -- ** Miscellaneous functions
     const, flip, ($), until,
@@ -165,14 +168,20 @@ module Base
     , module Control.Comonad
 
     , module Data.Zip -- zip, unzip, zipWith, repeat
+    , module Data.These
+
+    , module Data.Functor.Apply
+    , module Data.Functor.Bind -- join
+    , module Data.Functor.Extend
 
     -- , module Data.Functor.Utils
-    , (#.), ( # )
+    , (#.), (.#), ( #$), ($#)
+    , pamf, (<&>)
 
     ------------------
 
     , fi, comparing, swap
-    , Semiring, Ring
+    , Semiring, Ring (..)
 
     -- , Sum (..), Product (..)
     , Alt (..), ZipList (..), Down (..)
@@ -194,7 +203,7 @@ import Data.Coerce
 import Data.Kind
 import GHC.TypeNats (Nat (..), KnownNat (..), natVal, natVal', type (+), type (*))
 import Control.Category
-import Control.Monad
+import Control.Monad hiding (join)
 import Control.Applicative
 
 import System.IO
@@ -209,13 +218,14 @@ import Data.Tuple
 import Data.Monoid
 import Data.Ord (Down (..), comparing)
 
-import GHC.Base hiding ( foldr, mapM, sequence, map, id, (.) )
+import GHC.Base hiding ( foldr, mapM, sequence, map, id, (.), join )
 import GHC.Show
 import Text.Read
 
 import GHC.Enum
 import GHC.Num (Num (abs, signum), subtract)
 import GHC.Num (Integer)
+import qualified GHC.Num as Num
 import GHC.Real hiding ((^), gcd, lcm, fromRational, recip, (/))
 import GHC.Float
 import Data.Semiring as S
@@ -229,17 +239,33 @@ import Data.Pointed
 import Data.Copointed
 
 import Data.Zip
+import Data.These
+
+import Data.Functor.Apply
+import Data.Functor.Bind
+import Data.Functor.Extend
 
 
 {-# INLINE (#.) #-}
 infixr 9 #.
 (#.) :: Coercible b c => (b -> c) -> (a -> b) -> (a -> c)
-(#.) _f = coerce
+(#.) _ab = coerce
 
+{-# INLINE (.#) #-}
+infixr 9 .#
+(.#) :: Coercible a b => (b -> c) -> (a -> b) -> (a -> c)
+(.#) bc _ab = coerce bc
 
-{-# INLINE (#) #-}
-infixr 0 #
-( # ) f x = f `flip` x
+{-# INLINE ( #$) #-}
+infixr 0 #$
+( #$) :: Coercible a b => (a -> b) -> a -> b
+( #$) _ab = coerce
+
+{-# INLINE ($#) #-}
+infixr 0 $#
+($#) :: Coercible a b => (b -> c) -> a -> c
+($#) = coerce
+
 
 ----
 
@@ -249,6 +275,15 @@ fi = S.fromIntegral
 {-# INLINE map #-}
 map :: Functor f => (a -> b) -> f a -> f b
 map = fmap
+
+{-# INLINE pamf #-}
+pamf :: Functor f => f a -> (a -> b) -> f b
+pamf = flip fmap
+
+{-# INLINE (<&>) #-}
+infixl 5 <&>
+(<&>) :: Functor f => f a -> (a -> b) -> f b
+(<&>) = pamf
 
 ----
 
@@ -296,4 +331,8 @@ instance Semiring s => Semiring (Sum s) where
   one   = Sum one
   plus  = coerce (plus  :: s -> s -> s)
   times = coerce (times :: s -> s -> s)
+
+-- This is technically wrong
+instance Ring Num.Natural where
+  negate = Num.negate
 

@@ -1,21 +1,23 @@
 module Prelude
   ( module Base
-  , module Elem
-  -- , module Stack
   , module Utils
   , module Defn
   , module Wrapped
   , module TypeUtils
   , module Iso
+  , module Unit
+  , module Data.Foldable.Foldr
+  , module Data.Foldable.Unfoldable
   ) where
 
 import Base
 
-import Elem
--- import Stack  (Stack (..), WrappedStack)
 import Utils
 import Defn
 import Wrapped
 import TypeUtils (type ($))
-import Iso
+import Iso (Iso (..))
+import Unit
+import Data.Foldable.Foldr (Foldr (..))
+import Data.Foldable.Unfoldable
 
